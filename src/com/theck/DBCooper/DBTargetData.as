@@ -22,8 +22,6 @@ import com.Utils.LDBFormat;
 	private var stackExpireTime:Number;
 	private var targetExpireTime:Number;
 	
-	//private var DB_DEBUFF_ID:Number = 9255644; // Dragon's Breath debuff id
-	
 	static var DB_DEBUFF_ID:Number = 9255644; // Dragon's Breath debuff w/o passive
 	static var DB_DEBUFF_ID_2:Number = 9267971; // Dragon's Breath debuff w/ passive
 	
@@ -42,43 +40,21 @@ import com.Utils.LDBFormat;
 		
 		// connect signals
 		var tar:Character = Character.GetCharacter(target);
-		//tar.SignalBuffAdded.Connect(OnBuffAdd, this);
-		//tar.SignalBuffRemoved.Connect(OnBuffRemove, this);
 		tar.SignalBuffUpdated.Connect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Connect(OnCharacterDied, this);
 		tar.SignalCharacterDestructed.Connect(OnCharacterDied, this);
 		
 	}
 	
-	// unneeded because on application both Add and Update are fired, and Update contains the info we need
-	private function OnBuffAdd(buffId:Number) {
-		Debug("AddBuff");
-
-		UpdateOnBuffSignal(buffId);
-		//DebugDumpObjectProperties(Character.GetCharacter(target).m_BuffList[buffId]);		
-	}
-	
-	// this is probably useless b/c you can't query m_BuffList anymore once this fires anyway
-	private function OnBuffRemove(buffId:Number) {
-		Debug("RemoveBuff");
-		//Debug("buffId = " + buffId );
-		//stacks = 0;
-		//DebugDumpObjectProperties(Character.GetCharacter(target).m_BuffList[buffId]);
-	}
-	
-	private function OnBuffUpdate(buffId:Number) {
-		Debug("UpdateBuff");
-		
+	private function OnBuffUpdate(buffId:Number) {		
 		UpdateOnBuffSignal(buffId);	
-		DebugDumpObjectProperties(Character.GetCharacter(target).m_BuffList[buffId]);	
+		//DebugDumpObjectProperties(Character.GetCharacter(target).m_BuffList[buffId]);	
 	}
 	
 	private function OnCharacterDied() {
 		Debug("Died");
 		// can disconnect all signals now
 		var tar:Character = Character.GetCharacter(target);
-		//tar.SignalBuffAdded.Disconnect(OnBuffAdd, this);
-		//tar.SignalBuffRemoved.Disconnect(OnBuffRemove, this);
 		tar.SignalBuffUpdated.Disconnect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Disconnect(OnCharacterDied, this);
 		tar.SignalCharacterDestructed.Disconnect(OnCharacterDied, this);		
@@ -106,7 +82,6 @@ import com.Utils.LDBFormat;
 		DebugDumpTargetData("after");
 	}
 	
-	// this may not be necessary at all. 
 	public function Update() {
 		Debug("Update");
 		DebugDumpTargetData("before");

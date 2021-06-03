@@ -19,8 +19,8 @@ class com.theck.DBCooper.DBTargetManager
 	private var TargetList:Object;
 	private var player:Character;
 	
-	static var POLLING_INTERVAL:Number = 2000; // ms update interval
 	private var combatUpdateInterval:Number; // interval variable for updating during combat
+	static var POLLING_INTERVAL:Number = 2000; // ms update interval
 	
 	
 	public function DBTargetManager(player_in:ID32) 
@@ -63,10 +63,6 @@ class com.theck.DBCooper.DBTargetManager
 		
 		// cycle through list and remove expired entries 
 		for ( var i in TargetList ) {
-			//Debug("i is " + i);
-			//Debug("OffTarg is " + player.GetOffensiveTarget());
-			//var testbool:Boolean = ( i == String(player.GetOffensiveTarget() ));
-			//Debug("test is:" + testbool);
 			
 			// never remove current target - this prevents weirdness caused by leaving and re-entering
 			// combat while maintaining a target

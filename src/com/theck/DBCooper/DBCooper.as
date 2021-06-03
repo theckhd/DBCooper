@@ -3,22 +3,16 @@
 * @author theck
 */
 
-//import com.GameInterface.Game.Shortcut;
-//import com.GameInterface.Inventory;
 import com.GameInterface.Game.BuffData;
 import com.Utils.ID32;
 import com.theck.DBCooper.DBTargetData;
 import com.theck.DBCooper.DBTargetManager;
 import com.theck.DBCooper.SimpleBar;
-//import com.GameInterface.InventoryItem;
 import com.Utils.Archive;
 import com.GameInterface.Game.Character;
-//import com.Utils.ID32;
-//import com.Utils.Text;
 import com.Utils.GlobalSignal;
 import com.theck.Utils.Common;
 import com.theck.DBCooper.ConfigManager;
-//import GUI.theck.Simplebar;
 import flash.geom.Point;
 import mx.utils.Delegate;
 import com.Utils.LDBFormat;
@@ -32,26 +26,22 @@ class com.theck.DBCooper.DBCooper
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.2";
+	static var version:String = "0.3";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
-	public  var bar:SimpleBar;
-	//static  var barColors:Array = [0x997A00, 0xFFD11A]; 
+	public  var bar:SimpleBar;	
 	static  var barColors:Array = [0xbb5814, 0xf7741a]; // [darker (top) lighter (bottom)]
 	private var guiThrottle:Boolean = false;
 	
-	//private var m_inventory:Inventory;	
 	private var m_player:Character;
 	private var m_inventory:Inventory;
 	private var m_currentTarget:Character;
 	
 	private var TargetManager:DBTargetManager;
 	
-	//static var DB_DEBUFF_ID:Number = 9255644; // Dragon's Breath debuff w/o passive
-	//static var DB_DEBUFF_ID_2:Number = 9267971; // Dragon's Breath debuff w/ passive
-	static var POLLING_INTERVAL:Number = 100; // ms update interval
 	private var combatUpdateInterval:Number; // interval variable for updating during combat
+	static var POLLING_INTERVAL:Number = 50; // ms update interval
 	
 	private var Config:ConfigManager;
 	
@@ -85,6 +75,7 @@ class com.theck.DBCooper.DBCooper
 		// connect signals here
 		GlobalSignal.SignalSetGUIEditMode.Connect(GuiEdit, this);
 		m_inventory.SignalItemAdded.Connect(OnWeaponChange, this);
+		Config.SignalValueChanged.Connect(ReCreateBar, this);
 	}
 
 	public function Unload(){
@@ -92,6 +83,7 @@ class com.theck.DBCooper.DBCooper
 		// disconnect signals here
 		GlobalSignal.SignalSetGUIEditMode.Disconnect(GuiEdit, this);
 		m_inventory.SignalItemAdded.Disconnect(OnWeaponChange, this);
+		Config.SignalValueChanged.Disconnect(ReCreateBar, this);
 	
 	}
 	
@@ -111,6 +103,7 @@ class com.theck.DBCooper.DBCooper
 		
 		// do some sanity checking in case we reloadui in combat
 		if (  m_player.IsInCombat() && m_player.GetOffensiveTarget() ) {
+			
 			// set the current target to the player's target
 			m_currentTarget = Character.GetCharacter(m_player.GetOffensiveTarget());
 			
@@ -147,8 +140,16 @@ class com.theck.DBCooper.DBCooper
 		bar.SetVisible(IsShotgunEquipped());
 	}
 	
-	
+	private function ReCreateBar() {
+		// for when settings are updated. Create bar
+		CreateBar();		
+		
+		// Move clip to location
+		SetPos( Config.GetValue("position") );
+	}
+		
 	public function SetPos(pos:Point) {
+		
 		// sanitize inputs - this fixes a bug where someone changes screen resolution and suddenly the field is off the visible screen
 		if ( pos.x > Stage.width || pos.x < 0 ) { pos.x = Stage.width / 2; }
 		if ( pos.y > Stage.height || pos.y < 0 ) { pos.y = Stage.height / 2; }
@@ -195,32 +196,29 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	public function GuiEdit(state:Boolean) {
-		//Debug("GuiEdit(" + state + ")");
 		
 		EnableInteraction(state);
 		ToggleBackground(state);
 		SetVisible(true);
 		
 		if (state) {
-			Debug("GuiEdit true case");
+			//Debug("GuiEdit true case");
 			clip.onPress = Delegate.create(this, BarStartDrag);
 			clip.onRelease = Delegate.create(this, BarStopDrag);
-			bar.SetRightText("Move Me");
 			
 			// set throttle variable - this prevents extra spam when the game calls GuiEdit event with false argument, which it seems to like to do ALL THE DAMN TIME
 			guiThrottle = true;
 		}
 		else if guiThrottle {
-			Debug("GuiEdit false case");
+			//Debug("GuiEdit false case");
 			clip.stopDrag();
 			clip.onPress = undefined;
 			clip.onRelease = undefined;
-			
-			bar.SetRightText("Time");
 		}
-				// set throttle variable
-				guiThrottle = false;
-				setTimeout(Delegate.create(this, ResetGuiThrottle), 100);
+		
+		// set throttle variable
+		guiThrottle = false;
+		setTimeout(Delegate.create(this, ResetGuiThrottle), 100);
 	}
 	
 	private function ResetGuiThrottle() {
@@ -234,29 +232,6 @@ class com.theck.DBCooper.DBCooper
 	//////////////////////////////////////////////////////////
 	// Core Logic
 	//////////////////////////////////////////////////////////
-	
-	// unused delete
-	/*
-	private function CheckCharForDB(char:Character):Boolean {
-		if ( !char || char.IsDead() ) return false;
-		if ( char.GetName() == "" ) return false; // (Xeio): Proxy check for character being out of range
-				
-		if ( char.m_BuffList[DB_DEBUFF_ID] ) {
-			Debug("Target has DB");
-			Debug("Caster id is: " + char.m_BuffList[DB_DEBUFF_ID].m_CasterId);
-			Debug("Player id is: " + m_player.GetID().m_Instance);
-			//Debug("Comparison is " + (char.m_BuffList[DB_DEBUFF_ID].m_CasterId == m_player.GetID().m_Instance ) );;
-			//DebugDumpObjectProperties(char.m_BuffList[DB_DEBUFF_ID]);
-			if ( char.m_BuffList[DB_DEBUFF_ID].m_CasterId == m_player.GetID().m_Instance ) {
-				Debug("And it's ours!");
-				//Debug("getTimer(): " + getTimer() );
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	*/
 	
 	private function UpdateCurrentTarget( charID:ID32 ) {
 		// disconnect old signals
@@ -306,9 +281,6 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function IsShotgunEquipped():Boolean {
-		//var main_hand_item:InventoryItem = m_inventory.GetItemAt(_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot);
-		//var off_hand_item:InventoryItem = m_inventory.GetItemAt(_global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot);
-		
 		return ( m_inventory.GetItemAt(_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot).m_Type == 1088 || m_inventory.GetItemAt(_global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot).m_Type == 1088 );
 
 	}
@@ -339,33 +311,20 @@ class com.theck.DBCooper.DBCooper
 				SetVisible(true);
 				
 			}
-			else {
-				
+			else {				
 				// hide display
 				SetVisible(false);
 			}
 		}
 	}
 	
-	private function OnTargetBuffAdd(buffId:Number) {
-		
-		setTimeout(Delegate.create(this, UpdateBarVisibility), 50 );
-		
-	}
-	
-	private function OnTargetBuffUpdate(buffId:Number) {
-		
-		setTimeout(Delegate.create(this, UpdateBarVisibility), 50 );
-		
-	}
-	
-	private function OnTargetBuffRemove(buffId:Number) {
+	private function OnTargetBuffSignal(buffId:Number) {
 		
 		setTimeout(Delegate.create(this, UpdateBarVisibility), 50 );
 	}
 	
 	private function OnToggleCombat(state:Boolean) {
-		Debug("OnToggleCombat");
+		//Debug("OnToggleCombat");
 		if ( state ) {
 			// start periodic updates
 			combatUpdateInterval = setInterval(Delegate.create(this, UpdateBar), POLLING_INTERVAL);	
@@ -384,8 +343,8 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function OnWeaponChange() {
-		Debug("OnWeaponChange");
-		Debug("Shotgun is " + IsShotgunEquipped() );
+		//Debug("OnWeaponChange");
+		//Debug("Shotgun is " + IsShotgunEquipped() );
 		if IsShotgunEquipped() {
 			// connect signals
 			m_player.SignalOffensiveTargetChanged.Connect(OnCharacterOffensiveTargetChanged, this);
@@ -399,15 +358,15 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function ConnectTargetingSignals() {
-		m_currentTarget.SignalBuffAdded.Disconnect(OnTargetBuffAdd, this);
-		m_currentTarget.SignalBuffUpdated.Disconnect(OnTargetBuffUpdate, this);
-		m_currentTarget.SignalBuffRemoved.Disconnect(OnTargetBuffRemove, this);
+		m_currentTarget.SignalBuffAdded.Disconnect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffUpdated.Disconnect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffRemoved.Disconnect(OnTargetBuffSignal, this);
 	}
 	
 	private function DisconnectTargetingSignals() {
-		m_currentTarget.SignalBuffAdded.Connect(OnTargetBuffAdd, this);
-		m_currentTarget.SignalBuffUpdated.Connect(OnTargetBuffUpdate, this);
-		m_currentTarget.SignalBuffRemoved.Connect(OnTargetBuffRemove, this);
+		m_currentTarget.SignalBuffAdded.Connect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffUpdated.Connect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffRemoved.Connect(OnTargetBuffSignal, this);
 	}
 	
 	//////////////////////////////////////////////////////////
@@ -430,18 +389,6 @@ class com.theck.DBCooper.DBCooper
 		outputText = secsString + "." + dsecsString;
 		return outputText;
 	}
-	
-	//private function ParseSeconds(time:Number):String {
-		//if time >= 10 {
-			//return time.toString();
-		//}
-		//else if ( time < 10 && time > 0 ) {
-			//return "0" + time.toString();
-		//}
-		//else {
-			//return "00";
-		//}
-	//}
 	
 	//////////////////////////////////////////////////////////
 	// Debugging
