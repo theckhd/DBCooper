@@ -29,7 +29,7 @@ class com.theck.DBCooper.SimpleBar
 	
 	
 	private static var m_radius:Number = 4;
-	private static var rightTextWidth:Number = 70;
+	//private static var rightTextWidth:Number = 70;
 	//private static var leftTextWidth:Number = 20;
 	
 	public function SimpleBar(name:String, parent:MovieClip, x:Number, y:Number, width:Number, inFontSize:Number, colors:Array) 
@@ -53,7 +53,7 @@ class com.theck.DBCooper.SimpleBar
 		m_frame._y = y;
 		
 		var textFormat:TextFormat = new TextFormat("_StandardFont", fontSize, 0xFFFFFF, true);
-		textFormat.align = "right";
+		textFormat.align = "center";
 		
 		var extents:Object = Text.GetTextExtent("8", textFormat, m_frame);
 		var height:Number = extents.height + extents.height * 0.05 + 4;
@@ -61,35 +61,38 @@ class com.theck.DBCooper.SimpleBar
 		
 		var leftTextWidth:Number = Math.ceil( extents.width * 1.75 );
 		
+		// create the bar
 		CreateBar2(m_bar, width, height, colors);
+		
+		// Create the background for the text field showing stacks
 		DrawFilledRoundedRectangle(m_stackbox, 0x000000, 0, 0x750505, 100, -leftTextWidth-1, 0, leftTextWidth, height);
 		
-		
+		// create the text field showing number of stacks
 		m_leftText = m_frame.createTextField(name + "_leftText", m_frame.getNextHighestDepth(), -leftTextWidth-1, m_frame._height / 2 - extents.height / 2, leftTextWidth, extents.height);
-		//m_rightText = m_frame.createTextField(name + "_rightText", m_frame.getNextHighestDepth(), m_bar._width - rightTextWidth, m_frame._height / 2 - extents.height / 2, rightTextWidth, extents.height);
-		m_rightText = m_frame.createTextField(name + "_rightText", m_frame.getNextHighestDepth(),  0, m_frame._height / 2 - extents.height / 2, m_bar._width, extents.height);
-
-		m_rightText.setNewTextFormat(textFormat);		
-		m_leftText.background = false;
-		m_rightText.background = false;
-		
 		textFormat.align = "center";
 		m_leftText.setNewTextFormat(textFormat);
-		m_leftText.backgroundColor =  0x750505;
+		m_leftText.backgroundColor =  0x750505;	
+		m_leftText.background = false;
 		
-		// SUPER HACKY - for some reason MovieClips don't seem to register clicks in GUIEdit mode, but TextFields do. So we make one big TextField over the whole bar for GUIEdit purposes.
+		// create the text field over the bar for showing name or time
+		m_rightText = m_frame.createTextField(name + "_rightText", m_frame.getNextHighestDepth(),  0, m_frame._height / 2 - extents.height / 2, m_bar._width, extents.height);
+		textFormat.align = "right";
+		m_rightText.setNewTextFormat(textFormat);	
+		m_rightText.background = false;
+		
+		// SUPER HACKY - for some reason MovieClips don't seem to register clicks in GUIEdit mode, but TextFields do. 
+		// So we make one big TextField over the whole bar for GUIEdit purposes.
 		m_dragText = m_frame.createTextField(name + "_dragText", m_frame.getNextHighestDepth(), 0, 0, width, m_frame._height );		
-
+		textFormat.align = "center";
 		m_dragText.setNewTextFormat(textFormat);
 		m_dragText.text = "Drag Me";
 		m_dragText._visible = false;
 		
-		//do this after CreateBar, otherwise it doesn't have a width
-		m_scaleWidth = m_scaleFrame._width;
-		
-		// Draw the rectangle for the background
+		// Draw the rectangle for the background of the bar (shows when it isn't full)
 		DrawFilledRoundedRectangle(m_frame, 0x000000, 2, 0x000000, 50, 0, 0, width, height);
 		
+		//do this after CreateBar, otherwise it doesn't have a width
+		m_scaleWidth = m_scaleFrame._width;		
 	}
 	
 	

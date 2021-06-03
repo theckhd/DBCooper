@@ -22,11 +22,11 @@ import com.GameInterface.InventoryItem;
 class com.theck.DBCooper.DBCooper
 {
 	
-	static var debugMode:Boolean = false;
+	static var debugMode:Boolean = true;
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.3";
+	static var version:String = "0.4";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
@@ -75,7 +75,7 @@ class com.theck.DBCooper.DBCooper
 		// connect signals here
 		GlobalSignal.SignalSetGUIEditMode.Connect(GuiEdit, this);
 		m_inventory.SignalItemAdded.Connect(OnWeaponChange, this);
-		Config.SignalValueChanged.Connect(ReCreateBar, this);
+		Config.SignalValueChanged.Connect(SettingChanged, this);
 	}
 
 	public function Unload(){
@@ -83,7 +83,7 @@ class com.theck.DBCooper.DBCooper
 		// disconnect signals here
 		GlobalSignal.SignalSetGUIEditMode.Disconnect(GuiEdit, this);
 		m_inventory.SignalItemAdded.Disconnect(OnWeaponChange, this);
-		Config.SignalValueChanged.Disconnect(ReCreateBar, this);
+		Config.SignalValueChanged.Disconnect(SettingChanged, this);
 	
 	}
 	
@@ -130,6 +130,7 @@ class com.theck.DBCooper.DBCooper
 		var width:Number = Config.GetValue("width");
 		
 		// nuke any old bar (hopefully?)
+		bar.SetVisible(false);
 		bar = undefined;
 		
 		// create a new one. Note position is (0,0) since location on screen is controlled by clip
@@ -140,12 +141,16 @@ class com.theck.DBCooper.DBCooper
 		bar.SetVisible(IsShotgunEquipped());
 	}
 	
-	private function ReCreateBar() {
-		// for when settings are updated. Create bar
-		CreateBar();		
+	private function SettingChanged(key:String) {
+		Debug("ReCreateBar()");
 		
-		// Move clip to location
-		SetPos( Config.GetValue("position") );
+		if ( key != "position" ) {
+			// for when settings are updated. Create bar
+			CreateBar();		
+			
+			// Move clip to location
+			SetPos( Config.GetValue("position") );
+		}
 	}
 		
 	public function SetPos(pos:Point) {
@@ -199,7 +204,7 @@ class com.theck.DBCooper.DBCooper
 		
 		EnableInteraction(state);
 		ToggleBackground(state);
-		SetVisible(true);
+		SetVisible(state);
 		
 		if (state) {
 			//Debug("GuiEdit true case");
@@ -271,7 +276,7 @@ class com.theck.DBCooper.DBCooper
 			// only update it the remaining time is > 0
 			// otherwise weird stuff happens b/c pct is < 0
 			if ( timeRemaining > 0 ) {		
-				bar.Update(pct, String(entry.Stacks()), name );
+				bar.Update(pct, String(entry.Stacks()), timeDisplay );
 			}
 		}
 		else {
