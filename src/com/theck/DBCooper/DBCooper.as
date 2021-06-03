@@ -26,7 +26,7 @@ class com.theck.DBCooper.DBCooper
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.5";
+	static var version:String = "0.5.1";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
@@ -343,6 +343,9 @@ class com.theck.DBCooper.DBCooper
 		else {
 			// stop periodic updates
 			clearInterval(combatUpdateInterval);
+			
+			// hide bar
+			SetVisible(false);
 		}
 		
 	}
