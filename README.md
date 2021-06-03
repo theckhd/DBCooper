@@ -1,13 +1,22 @@
 # DBCooper
 SWL Addon for tracking Dragon's Breath debuff stacks
 
+## Motivation
+Have you ever been annoyed that EffectsUI isn't able to track only *your* Dragon's breath debuff? Let <a href="https://en.wikipedia.org/wiki/D._B._Cooper">D. B. Cooper</a> help!
+
+![DBCooper](screens/220px-DBCooper.jpg)
+
 A limitation in the game's API prevents addons like EffectsUI from discriminating between identical debuffs applied by different players. For example, if two players are stacking Dragon's Breath on a target, the EffectsUI display (and to a lesser extent the default in-game display) will change which player's debuff information is displayed.
 
 This addon circumvents that issue and displays only your own Dragon's Breath stacks. 
 
+## Display
+
 By default, the display looks like the screenshot below, showing the number of stacks in a red box and the timer on the current stack as a bar display.
 
-![Default Display](screens/dbc_250bar.PNG) 
+![Default Display](screens/dbc_250bar.PNG)
+
+The bar can be moved around in GUIEdit mode to place it wherever you want.
 
 ## Customization
 However, the dsiplay can be customized using slash commands. To change the horizontal width of the bar, use
