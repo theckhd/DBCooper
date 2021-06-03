@@ -26,7 +26,7 @@ class com.theck.DBCooper.DBCooper
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.5.1";
+	static var version:String = "0.6";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
@@ -137,8 +137,8 @@ class com.theck.DBCooper.DBCooper
 		bar = new SimpleBar("DBBar", clip, 0, 0, width, fontSize, barColors);
 		bar.Update(0.50, "0", "Bar Initialized");
 		
-		// hide on creation if no shotgun is equipped
-		bar.SetVisible(IsShotgunEquipped());
+		// hide on creation 
+		bar.SetVisible(false);
 	}
 	
 	private function SettingChanged(key:String) {
@@ -171,12 +171,10 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	public function BarStartDrag() {
-		Debug("BarStartDrag called");
         clip.startDrag();
     }
 
     public function BarStopDrag() {
-		Debug("BarStopDrag called");
         clip.stopDrag();
 		
 		// grab position for config storage on Deactivate()
@@ -196,12 +194,13 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function SetVisible(flag:Boolean) {
+		//Debug("SetVisible called with flag " + flag );
 		clip.SetVisible(flag);
 		bar.SetVisible(flag);
 	}
 	
 	public function GuiEdit(state:Boolean) {
-		
+		//Debug("GuiEdit " + state );
 		EnableInteraction(state);
 		ToggleBackground(state);
 		SetVisible(state);
@@ -230,8 +229,9 @@ class com.theck.DBCooper.DBCooper
 		guiThrottle = true;
 	}
 	
-	private function UpdateBarVisibility() {		
-		SetVisible(TargetManager.TargetHasDB(m_currentTarget.GetID() ) ); 
+	private function UpdateBarVisibility() {
+		//Debug("UpdateBarVisibility()");
+		SetVisible( m_player.IsInCombat() && TargetManager.TargetHasDB(m_currentTarget.GetID() ) ); 
 	}
 	
 	//////////////////////////////////////////////////////////
@@ -316,7 +316,8 @@ class com.theck.DBCooper.DBCooper
 				SetVisible(true);
 				
 			}
-			else {				
+			else {
+				Debug("Hiding display in OnTargetChanged");
 				// hide display
 				SetVisible(false);
 			}
@@ -324,12 +325,12 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function OnTargetBuffSignal(buffId:Number) {
-		
+		Debug("OnTargetBuffSignal");		
 		setTimeout(Delegate.create(this, UpdateBarVisibility), 50 );
 	}
 	
 	private function OnToggleCombat(state:Boolean) {
-		//Debug("OnToggleCombat");
+		Debug("OnToggleCombat " + state );
 		if ( state ) {
 			// start periodic updates
 			combatUpdateInterval = setInterval(Delegate.create(this, UpdateBar), POLLING_INTERVAL);	
@@ -344,8 +345,9 @@ class com.theck.DBCooper.DBCooper
 			// stop periodic updates
 			clearInterval(combatUpdateInterval);
 			
-			// hide bar
-			SetVisible(false);
+			//// hide bar
+			//Debug("Hiding display in OnToggleCombat");
+			//SetVisible(false);
 		}
 		
 	}
