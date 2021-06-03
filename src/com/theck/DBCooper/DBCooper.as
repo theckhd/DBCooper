@@ -22,11 +22,11 @@ import com.GameInterface.InventoryItem;
 class com.theck.DBCooper.DBCooper
 {
 	
-	static var debugMode:Boolean = true;
+	static var debugMode:Boolean = false;
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.4";
+	static var version:String = "0.5";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	

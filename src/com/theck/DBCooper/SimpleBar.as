@@ -5,10 +5,7 @@
  * Much of this adapted from BooBars
  */
 
- 
-//import com.theck.Utils.Debugger;
 import flash.geom.Matrix;
-//import caurina.transitions.Tweener;
 import com.Utils.Text;
 
 class com.theck.DBCooper.SimpleBar
