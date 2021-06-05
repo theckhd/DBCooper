@@ -26,7 +26,7 @@ class com.theck.DBCooper.DBCooper
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.6";
+	static var version:String = "0.6.1";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
@@ -239,18 +239,31 @@ class com.theck.DBCooper.DBCooper
 	//////////////////////////////////////////////////////////
 	
 	private function UpdateCurrentTarget( charID:ID32 ) {
-		// disconnect old signals
-		if ( m_currentTarget ) {
+		
+		var newTarget:Character = Character.GetCharacter(charID);
+		// if we've changed targets
+		if ( m_currentTarget && ( m_currentTarget != newTarget ) ) {
+			
+			// disconnect old signals
+			DisconnectTargetingSignals();
+			
+			// update m_currentTarget
+			m_currentTarget = newTarget;
+			
+			// connect new signals
 			ConnectTargetingSignals();
 		}
-		
-		// update m_currentTarget
-		m_currentTarget = Character.GetCharacter(charID);
-		
-		// connect new signals	
-		if ( m_currentTarget ) {
-			DisconnectTargetingSignals();
+		// if we didn't have a target before
+		else if ( newTarget )  {
+			
+			// update m_currentTarget
+			m_currentTarget = newTarget;
+			
+			// connect new signals	
+			ConnectTargetingSignals();
 		}
+		// the only other case is if the new target is null, in which case we do nothing 
+		// (and in any event that shouldn't ever happen since this function shouldn't even be called)
 	}
 	
 	private function UpdateBar() {
@@ -366,17 +379,17 @@ class com.theck.DBCooper.DBCooper
 			m_player.SignalToggleCombat.Disconnect(OnToggleCombat, this); 
 		}
 	}
-	
+		
 	private function ConnectTargetingSignals() {
-		m_currentTarget.SignalBuffAdded.Disconnect(OnTargetBuffSignal, this);
-		m_currentTarget.SignalBuffUpdated.Disconnect(OnTargetBuffSignal, this);
-		m_currentTarget.SignalBuffRemoved.Disconnect(OnTargetBuffSignal, this);
-	}
-	
-	private function DisconnectTargetingSignals() {
 		m_currentTarget.SignalBuffAdded.Connect(OnTargetBuffSignal, this);
 		m_currentTarget.SignalBuffUpdated.Connect(OnTargetBuffSignal, this);
 		m_currentTarget.SignalBuffRemoved.Connect(OnTargetBuffSignal, this);
+	}
+	
+	private function DisconnectTargetingSignals() {
+		m_currentTarget.SignalBuffAdded.Disconnect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffUpdated.Disconnect(OnTargetBuffSignal, this);
+		m_currentTarget.SignalBuffRemoved.Disconnect(OnTargetBuffSignal, this);
 	}
 	
 	//////////////////////////////////////////////////////////

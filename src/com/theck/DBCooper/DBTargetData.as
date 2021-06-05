@@ -35,14 +35,14 @@ import com.Utils.LDBFormat;
 		stacks = -1;
 		stackExpireTime = -1;
 		
-		// default to a 5-second expire time for the target entry
-		targetExpireTime = getTimer() + 5000;
+		// default to a 30-second expire time for the target entry
+		targetExpireTime = getTimer() + 30000;
 		
 		// connect signals
 		var tar:Character = Character.GetCharacter(target);
 		tar.SignalBuffUpdated.Connect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Connect(OnCharacterDied, this);
-		tar.SignalCharacterDestructed.Connect(OnCharacterDied, this);
+		//tar.SignalCharacterDestructed.Connect(OnCharacterDied, this);
 		
 	}
 	
@@ -57,7 +57,7 @@ import com.Utils.LDBFormat;
 		var tar:Character = Character.GetCharacter(target);
 		tar.SignalBuffUpdated.Disconnect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Disconnect(OnCharacterDied, this);
-		tar.SignalCharacterDestructed.Disconnect(OnCharacterDied, this);		
+		//tar.SignalCharacterDestructed.Disconnect(OnCharacterDied, this);		
 	}
 	
 	public function UpdateOnBuffSignal(buffId:Number) {
