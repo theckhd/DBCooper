@@ -33,7 +33,7 @@ class com.theck.DBCooper.DBTargetManager
 	}
 	
 	public function AddTarget(target:ID32) {
-		Debug("Target added");
+		Debug("Target added: " + target.m_Instance + " " + Character.GetCharacter(target).GetName() );
 		var entry:DBTargetData = new DBTargetData( target, player.GetID() );
 		TargetList[target] = entry;
 	}
@@ -45,10 +45,10 @@ class com.theck.DBCooper.DBTargetManager
 	}
 	
 	public function NewTarget(target:ID32) {
-		Debug("target: " + target);
+		//Debug("target: " + target.m_Instance + " " + Character.GetCharacter(target).GetName());
 		if ( target ) {
 			if ( TargetList[target] ) {
-				Debug("Target updated");
+				Debug("Target updated: " + target.m_Instance + " " + Character.GetCharacter(target).GetName() );
 				TargetList[target].Update();			
 			}
 			else {
@@ -58,8 +58,8 @@ class com.theck.DBCooper.DBTargetManager
 	}
 	
 	private function MaintainTargetList() {
-		//Debug("Maintain");
 		var time:Number = getTimer();
+		//Debug("MTL: t=" + time + ", size=" + DatabaseLength() );
 		
 		// cycle through list and remove expired entries 
 		for ( var i in TargetList ) {
@@ -70,13 +70,13 @@ class com.theck.DBCooper.DBTargetManager
 				
 				// remove entries where the stacks should have expired
 				if ( TargetList[i].stacks <= 1 && TargetList[i].stackExpireTime > 0 && TargetList[i].stackExpireTime < time ) {
-					Debug("Entry " + i + " removed due to stack expiration");
+					Debug("MTL: t=" + getTimer() + ", Entry " + i + " (" + TargetList[i].name + ")" + " removed due to stack expiration, current target is " + player.GetOffensiveTarget() );
 					delete TargetList[i];
 				}
 				
 				// remove entries where the target never gained stacks
 				else if ( TargetList[i].targetExpireTime < time ) {
-					Debug("Entry " + i + " removed due to target expiration");
+					Debug("MTL: t=" + getTimer() + ", Entry " + i + " (" + TargetList[i].name + ")" + " removed due to target expiration, current target is " + player.GetOffensiveTarget() );
 					delete TargetList[i];
 				}
 			}
@@ -117,7 +117,7 @@ class com.theck.DBCooper.DBTargetManager
 			clearInterval(combatUpdateInterval);
 			
 			// schedule list destruction
-			setTimeout(Delegate.create(this, ClearTargetEntryList), 5000);			
+			setTimeout(Delegate.create(this, ClearTargetEntryList), 5000);
 		}		
 	}
 	
@@ -131,6 +131,17 @@ class com.theck.DBCooper.DBTargetManager
 				delete TargetList[i];
 			}
 		}
+	}
+	
+	private function DatabaseLength():Number {
+		var count:Number = 0; 
+		var key:String; 
+
+		for (key in TargetList)
+		{ 
+			count++; 
+		}
+		return count;
 	}
 	
 	//////////////////////////////////////////////////////////

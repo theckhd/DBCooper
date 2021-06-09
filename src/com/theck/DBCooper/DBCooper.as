@@ -26,7 +26,7 @@ class com.theck.DBCooper.DBCooper
 	static var debugPrefix:String = "DBC: ";
 	
 	// Version
-	static var version:String = "0.6.1";
+	static var version:String = "0.7";
 	
 	private var m_swfRoot:MovieClip;	
 	public  var clip:MovieClip;	
@@ -267,6 +267,7 @@ class com.theck.DBCooper.DBCooper
 	}
 	
 	private function UpdateBar() {
+		// update bar based on whether the target has DB or not
 		if TargetManager.TargetHasDB(m_currentTarget.GetID() ) {
 			
 			// display bar
@@ -350,7 +351,7 @@ class com.theck.DBCooper.DBCooper
 		
 			// add the current target entry to TargetManager (or update it)
 			if ( m_currentTarget.GetID() ) {
-				TargetManager.NewTarget (m_currentTarget.GetID() );
+				TargetManager.NewTarget(m_currentTarget.GetID() );
 			}
 			
 		}
@@ -360,7 +361,7 @@ class com.theck.DBCooper.DBCooper
 			
 			//// hide bar
 			//Debug("Hiding display in OnToggleCombat");
-			//SetVisible(false);
+			SetVisible(state);
 		}
 		
 	}

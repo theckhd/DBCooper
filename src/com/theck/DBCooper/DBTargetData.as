@@ -17,6 +17,7 @@ import com.Utils.LDBFormat;
 	
 	private var player:ID32;
 	public var target:ID32;
+	public var name:String;
 	
 	private var stacks:Number;
 	private var stackExpireTime:Number;
@@ -40,6 +41,7 @@ import com.Utils.LDBFormat;
 		
 		// connect signals
 		var tar:Character = Character.GetCharacter(target);
+		name = tar.GetName();
 		tar.SignalBuffUpdated.Connect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Connect(OnCharacterDied, this);
 		//tar.SignalCharacterDestructed.Connect(OnCharacterDied, this);
@@ -52,18 +54,21 @@ import com.Utils.LDBFormat;
 	}
 	
 	private function OnCharacterDied() {
-		Debug("Died");
+		Debug("Died: " + target.m_Instance + "(" + name + ")");
 		// can disconnect all signals now
 		var tar:Character = Character.GetCharacter(target);
 		tar.SignalBuffUpdated.Disconnect(OnBuffUpdate, this);
 		tar.SignalCharacterDied.Disconnect(OnCharacterDied, this);
-		//tar.SignalCharacterDestructed.Disconnect(OnCharacterDied, this);		
+		//tar.SignalCharacterDestructed.Disconnect(OnCharacterDied, this);
+		// set stacks to zero for early clean-up
+		stacks = 0;
+		targetExpireTime = getTimer() + 1000;
 	}
 	
 	public function UpdateOnBuffSignal(buffId:Number) {
 
-		Debug("UOBS");
-		DebugDumpTargetData("before");
+		//Debug("UOBS: " + target.m_Instance);
+		//DebugDumpTargetData("before");
 
 		if ( IsDragonsBreath(buffId) ) {
 			
@@ -79,12 +84,26 @@ import com.Utils.LDBFormat;
 				targetExpireTime = getTimer() + buff.m_RemainingTime * stacks + 10000;
 			}			
 		}
-		DebugDumpTargetData("after");
+		DebugDumpTargetData("UOBS");
 	}
 	
+	// this Update() gets called when something in the database is re-targeted
 	public function Update() {
-		Debug("Update");
-		DebugDumpTargetData("before");
+		//Debug("Update(): t=" + getTimer() + ", entry=" + target.m_Instance + " (" + name + ")" );
+		//DebugDumpTargetData("before");
+		
+		// Ugly awful hack Warning. 
+		// For some reason, two bosses (HR5 and DW5) go immune for short periods and somehow disconnect their signals. 
+		// No idea why, with HR5 it consistently happens after two Triggerthings are targeted. 
+		// Didn't test DW5 in detail after implementing this "fix"
+		
+		// Every time we retarget something that's already in the database, we'll reconnect the signals.
+		// This seems to fix the issue with those two bosses and doesn't seem to break anything else, so :shrug:
+		// End Ugly Awful Hack
+		var tar:Character = Character.GetCharacter(target);
+		tar.SignalBuffUpdated.Connect(OnBuffUpdate, this);
+		tar.SignalCharacterDied.Connect(OnCharacterDied, this);
+		
 		var time:Number = getTimer();
 		
 		// update the number of stacks and stack expire estimate
@@ -96,9 +115,10 @@ import com.Utils.LDBFormat;
 		
 		// if this takes us down to 1 stack and that stack should have expired, set to zero
 		if ( stacks == 1 && time > stackExpireTime ) {
+			Debug("Update(): " + name + " stacks set to zero");
 			stacks = 0;
 		}
-		DebugDumpTargetData("after");
+		//DebugDumpTargetData("Update()");
 	}
 	
 	public function Stacks():Number {
@@ -158,6 +178,6 @@ import com.Utils.LDBFormat;
 	
 	
 	private function DebugDumpTargetData(str:String) {
-		Debug("UOBS " + str +": stacks = " + stacks + ", sET = " + stackExpireTime + ", tET = " + targetExpireTime );		
+		Debug(str + " (" + target.m_Instance +", " + name + "): t=" + getTimer() + ", stacks = " + stacks + ", sET = " + stackExpireTime + ", tET = " + targetExpireTime );
 	}
 }
